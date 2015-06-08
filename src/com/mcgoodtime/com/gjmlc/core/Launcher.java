@@ -1,5 +1,6 @@
 package com.mcgoodtime.com.gjmlc.core;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -61,7 +62,18 @@ public class Launcher {
         return line;
     }
 
-    private static void getLibraries() {
-        
+    private static String  getLibraries(String text) {
+        JSONObject jsonObject = new JSONObject(text);
+        JSONArray array = (JSONArray) jsonObject.get("libraries");
+        String libs = null;
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject arrayObject = (JSONObject) array.get(i);
+            String lib = arrayObject.get("name").toString();
+            String a = lib.substring(0, lib.lastIndexOf(":")).replace(".", "/").replace(":", "/");
+            String b = lib.substring(lib.lastIndexOf(":") + 1);
+            String c = lib.substring(lib.indexOf(":") + 1).replace(":", "-");
+            libs = "\"" + "./.minecraft/libraries/" + a + "/" + b + "/" + c + ".jar";
+        }
+        return libs;
     }
 }
