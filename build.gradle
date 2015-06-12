@@ -1,0 +1,28 @@
+apply plugin: 'java'
+
+version = "1.0." + getBuildNumber()
+group= "com.mcgoodtime.gjmlc"
+archivesBaseName = "gjmlc"
+
+dependencies {
+    compile fileTree(dir:'libs',include:"*.jar")  
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'GJMLC',
+                   'Implementation-Version': version
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/'
+        }
+    }
+}
+
+def getBuildNumber() {
+	return "$System.env.BUILD_NUMBER" != "null" ? "$System.env.BUILD_NUMBER" : "0"
+}
