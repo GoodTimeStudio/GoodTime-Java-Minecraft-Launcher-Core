@@ -5,22 +5,31 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
+import java.util.List;
 
 /**
  * Created by suhao on 2015-6-8-0008.
+ *
+ * @author suhao
  */
 public class Launcher {
 
-    private static String versionPath = "./.minecraft/versions/";
+    protected static String versionPath = "./.minecraft/versions/";
     private static String versionInfoJson;
 
     public static void main(String[] args) {
         launch("1.8", "_JAVA7", 2048);
     }
 
-    public static void launch(String version, String username, int maxMemory) {
+    /**
+     *
+     * @param version Launch minecraft version.
+     * @param username Minecraft username.
+     * @param maxMemory Java VM max use memory.
+     */
+    public static List<String> launch(String version, String username, int maxMemory) {
         String text = loadVersionInfoFile(version);
-        System.out.println(text);
+
         String id = getVersionInfo(text, "id");
         String time = getVersionInfo(text, "time");
         String releaseTime = getVersionInfo(text, "releaseTime");
@@ -28,9 +37,11 @@ public class Launcher {
         int minimumLauncherVersion = getVersionInfoAsInt(text, "minimumLauncherVersion");
         String mainClass = getVersionInfo(text, "mainClass");
         String assets = getVersionInfo(text, "assets");
+
         String libraries = getLibraries(text);
-        System.out.println(libraries);
+
         tryToLaunch(version, libraries, minecraftArguments, mainClass, assets, username, maxMemory);
+        return null;
     }
 
     private static void tryToLaunch(String version, String libraries, String minecraftArguments,
@@ -49,6 +60,7 @@ public class Launcher {
 
         String cmd = "java -Xmx" + maxMemory + "M" + " " + "-Djava.library.path=" + nativesPath + " "
                 + "-classpath" + " " + libraries + "\"" + chassPath + "\"" + " " + mainClass + " " + arg;
+        System.out.println(cmd);
         try {
             Runtime.getRuntime().exec(cmd);
         } catch (IOException e) {
@@ -56,10 +68,10 @@ public class Launcher {
         }
     }
 
+    /**
+    * Get Version Info From Loaded Json
+    */
     private static String getVersionInfo(String text, String key) {
-        /*
-        Get Version Info From Loaded Json
-         */
         JSONObject jsonObject = new JSONObject(text);
         String value = null;
         try {
@@ -70,10 +82,10 @@ public class Launcher {
         return value;
     }
 
+    /**
+    * Get Version Info From Loaded Json
+    */
     private static int getVersionInfoAsInt(String text, String key) {
-        /*
-        Get Version Info From Loaded Json
-         */
         JSONObject jsonObject = new JSONObject(text);
         int value = 0;
         try {
@@ -84,13 +96,15 @@ public class Launcher {
         return value;
     }
 
-    private static String loadVersionInfoFile(String version) {
+    /**
+     * Load From Json File
+     * @param version Launch Minecraft version.
+     * @return Minecraft version info file text.
+     */
+    protected static String loadVersionInfoFile(String version) {
         versionInfoJson = versionPath + version + "/" + version + ".json";
         System.out.println("Version Info Json Path:" + versionInfoJson);
 
-        /*
-        Load From Json File
-         */
         StringBuffer stringBuffer = new StringBuffer();
         String line = null;
         try {
@@ -108,7 +122,7 @@ public class Launcher {
         return stringBuffer.toString();
     }
 
-    private static String  getLibraries(String text) {
+    protected static String  getLibraries(String text) {
         JSONObject jsonObject = new JSONObject(text);
         JSONArray array = (JSONArray) jsonObject.get("libraries");
         StringBuffer stringBuffer = new StringBuffer();
