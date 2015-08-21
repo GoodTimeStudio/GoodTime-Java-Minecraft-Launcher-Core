@@ -14,47 +14,92 @@ import java.util.List;
  */
 public class Launcher {
 
+    public static JSONObject verInfoObject;
+    public static JSONArray libArray;
+
+    private static String text;
+
     protected static String versionPath = "./.minecraft/versions/";
     private static String versionInfoJson;
+
+    private String version;
+    private String parentVer;
 
     /*
      * Demo.
      */
     public static void main(String[] args) {
-        launch("1.8", "_JAVA7", 2048, null);
+        Launcher launcher = new Launcher("1.7.10-Forge10.13.4.1448-1.7.10");
+        launcher.launch("BestOwl", 2048, null);
+    }
+
+    public Launcher(String version) {
+        text = loadVersionInfoFile(version);
+        verInfoObject = new JSONObject(text);
+        libArray = (JSONArray) verInfoObject.get("libraries");
+        this.version = version;
     }
 
     /**
      * Before you launch, you must run the libraries checker.
      *
-     * @param version Launch minecraft version.
      * @param username Minecraft username.
      * @param maxMemory Java VM max use memory.
      */
-    public static void launch(String version, String username, int maxMemory, String jvmArgs) {
-        String text = loadVersionInfoFile(version);
-
-        String id = getVersionInfo(text, "id");
-        String time = getVersionInfo(text, "time");
-        String releaseTime = getVersionInfo(text, "releaseTime");
-        String minecraftArguments = getVersionInfo(text, "minecraftArguments");
+    public void launch(String username, int maxMemory, String jvmArgs) {
+        String id = getVersionInfo("id");
+        String time = getVersionInfo("time");
+        String releaseTime = getVersionInfo("releaseTime");
+        String minecraftArguments = getVersionInfo("minecraftArguments");
         int minimumLauncherVersion = getVersionInfoAsInt(text, "minimumLauncherVersion");
-        String mainClass = getVersionInfo(text, "mainClass");
-        String assets = getVersionInfo(text, "assets");
+        String mainClass = getVersionInfo("mainClass");
+        String assets = getVersionInfo("assets");
 
-        String libraries = getLibraries(text);
+        String libraries;
+        Boolean isInherits;
+        if (verInfoObject.has("inheritsFrom")) {
+            libraries = getLibraries(text);
+
+            parentVer = getVersionInfo("inheritsFrom");
+            String parentText = loadVersionInfoFile(parentVer);
+            JSONObject parentVerInfoObj = new JSONObject(parentText);
+            JSONArray parentLibArray = (JSONArray) parentVerInfoObj.get("libraries");
+
+            StringBuffer stringBuffer = new StringBuffer();
+            for (int i = 0; i < parentLibArray.length(); i++) {
+                JSONObject arrayObject = (JSONObject) parentLibArray.get(i);
+                String lib = arrayObject.get("name").toString();
+                String a = lib.substring(0, lib.lastIndexOf(":")).replace(".", "/").replace(":", "/");
+                String b = lib.substring(lib.lastIndexOf(":") + 1);
+                String c = lib.substring(lib.indexOf(":") + 1).replace(":", "-");
+                String libs = "\"" + "./.minecraft/libraries/" + a + "/" + b + "/" + c + ".jar" + "\"" + ";";
+                stringBuffer.append(libs);
+            }
+            isInherits = true;
+            libraries = libraries + stringBuffer.toString();
+        } else {
+            isInherits = false;
+            libraries = getLibraries(text);
+        }
 
         if (jvmArgs == null) {
             jvmArgs = "";
         }
 
-        tryToLaunch(version, libraries, minecraftArguments, mainClass, assets, username, maxMemory, jvmArgs);
+        tryToLaunch(libraries, minecraftArguments, mainClass, assets, username, maxMemory, jvmArgs, isInherits);
     }
 
-    private static void tryToLaunch(String version, String libraries, String minecraftArguments,
-                                    String mainClass, String assets, String username, int maxMemory, String jvmArgs) {
+    private void tryToLaunch(String libraries, String minecraftArguments,
+                                    String mainClass, String assets, String username, int maxMemory, String jvmArgs, boolean isInherits) {
         String nativesPath = versionPath + version + "/" + version + "-" + "Natives";
-        String chassPath = versionPath + version + "/" + version + ".jar";
+
+        String classPath;
+        if (isInherits) {
+            classPath = versionPath + parentVer + "/" + parentVer + ".jar";
+        } else {
+            classPath = versionPath + version + "/" + version + ".jar";
+        }
+
         String arg = minecraftArguments.replace("${auth_player_name}", username)
                 .replace("${version_name}", version)
                 .replace("${game_directory}", "./.minecraft")
@@ -66,7 +111,7 @@ public class Launcher {
                 .replace("${user_type}", "legacy");
 
         String cmd = "java -Xmx" + maxMemory + "M" + " " + "-XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:-UseAdaptiveSizePolicy" + " "
-                + jvmArgs + "-Djava.library.path=" + nativesPath + " " + "-classpath" + " " + libraries + "\"" + chassPath + "\"" + " " + mainClass + " " + arg;
+                + jvmArgs + "-Djava.library.path=" + nativesPath + " " + "-classpath" + " " + libraries + "\"" + classPath + "\"" + " " + mainClass + " " + arg;
         System.out.println(cmd);
         try {
             Runtime.getRuntime().exec(cmd);
@@ -78,11 +123,10 @@ public class Launcher {
     /**
     * Get Version Info From Loaded Json
     */
-    private static String getVersionInfo(String text, String key) {
-        JSONObject jsonObject = new JSONObject(text);
+    private String getVersionInfo(String key) {
         String value = null;
         try {
-            value = jsonObject.getString(key);
+            value = verInfoObject.getString(key);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -92,11 +136,10 @@ public class Launcher {
     /**
     * Get Version Info From Loaded Json
     */
-    private static int getVersionInfoAsInt(String text, String key) {
-        JSONObject jsonObject = new JSONObject(text);
+    private int getVersionInfoAsInt(String text, String key) {
         int value = 0;
         try {
-            value = jsonObject.getInt(key);
+            value = verInfoObject.getInt(key);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -104,7 +147,7 @@ public class Launcher {
     }
 
     /**
-     * Load From Json File
+     * Load version info from json file
      * @param version Launch Minecraft version.
      * @return Minecraft version info file text.
      */
@@ -129,12 +172,10 @@ public class Launcher {
         return stringBuffer.toString();
     }
 
-    protected static String  getLibraries(String text) {
-        JSONObject jsonObject = new JSONObject(text);
-        JSONArray array = (JSONArray) jsonObject.get("libraries");
+    protected String  getLibraries(String text) {
         StringBuffer stringBuffer = new StringBuffer();
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject arrayObject = (JSONObject) array.get(i);
+        for (int i = 0; i < libArray.length(); i++) {
+            JSONObject arrayObject = (JSONObject) libArray.get(i);
             String lib = arrayObject.get("name").toString();
             String a = lib.substring(0, lib.lastIndexOf(":")).replace(".", "/").replace(":", "/");
             String b = lib.substring(lib.lastIndexOf(":") + 1);

@@ -38,11 +38,9 @@ public class LibrariesManager {
      * @return Missing Libraries Files List.
      */
     private static List<String> checkLibraries(String text) {
-        JSONObject jsonObject = new JSONObject(text);
-        JSONArray array = (JSONArray) jsonObject.get("libraries");
         List<String> missingLib = new ArrayList<String>();
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject arrayObject = (JSONObject) array.get(i);
+        for (int i = 0; i < Launcher.libArray.length(); i++) {
+            JSONObject arrayObject = (JSONObject) Launcher.libArray.get(i);
             String lib = arrayObject.getString("name");
             String a = lib.substring(0, lib.lastIndexOf(":")).replace(".", "/").replace(":", "/");
             String b = lib.substring(lib.lastIndexOf(":") + 1);
