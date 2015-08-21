@@ -1,5 +1,6 @@
-package com.mcgoodtime.com.gjmlc.core;
+package com.mcgoodtime.gjmlc.core;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -24,6 +25,15 @@ public class LibrariesManager {
     }
 
     /**
+     *
+     * @param text, Loaded json info.
+     * @return, Missing Libraries Files List.
+     */
+    public static List<String> checkFormJson(String text) {
+        return checkLibraries(text);
+    }
+
+    /**
      * @param text Minecraft version info file text.
      * @return Missing Libraries Files List.
      */
@@ -40,20 +50,33 @@ public class LibrariesManager {
             String libs = "./.minecraft/libraries/" + a + "/" + b + "/" + c + ".jar";
             File fileLib = new File(libs);
             if (!fileLib.exists()) {
-                if (arrayObject.has("natives")) {
-                    String os = System.getProperties().getProperty("os.name");
-                    if (os != null) {
-                        if (os.startsWith("Windows")) {
-                            System.out.println("Windows System");
-                        }
+                if (arrayObject.has("natives")) {;
+                    JSONObject nativesObject = (JSONObject) arrayObject.get("natives");
+                    String natives = null;
+                    if (SystemUtils.IS_OS_WINDOWS) {
+                        natives = nativesObject.getString("windows").replace("${arch}", SystemUtils.OS_ARCH);
+                    }
+                    if (SystemUtils.IS_OS_LINUX) {
+                        natives = nativesObject.getString("linux");
+                    }
+                    if (SystemUtils.IS_OS_MAC_OSX) {
+                        natives = nativesObject.getString("osx");
+                    }
+                    String nLibs = "./.minecraft/libraries/" + a + "/" + b + "/" + c + "-" + natives + ".jar";
+                    File nFileLib = new File(nLibs);
+                    if (!nFileLib.exists()) {
+                        missingLib.add(lib);
                     }
                 } else {
                     missingLib.add(lib);
                 }
             }
         }
-        System.out.println("Missing " + missingLib.size() + " Libraries");
-        System.out.println(missingLib);
+        System.err.println("Missing " + missingLib.size() + " Libraries");
+
+        for (String s : missingLib) {
+            System.err.println(s);
+        }
 
         return missingLib;
     }

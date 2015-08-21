@@ -1,4 +1,4 @@
-package com.mcgoodtime.com.gjmlc.core;
+package com.mcgoodtime.gjmlc.core;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,6 +17,9 @@ public class Launcher {
     protected static String versionPath = "./.minecraft/versions/";
     private static String versionInfoJson;
 
+    /*
+     * Just test.
+     */
     public static void main(String[] args) {
         launch("1.8", "_JAVA7", 2048);
     }
@@ -29,6 +32,7 @@ public class Launcher {
      */
     public static List<String> launch(String version, String username, int maxMemory) {
         String text = loadVersionInfoFile(version);
+        LibrariesManager.checkFormJson(text);
 
         String id = getVersionInfo(text, "id");
         String time = getVersionInfo(text, "time");

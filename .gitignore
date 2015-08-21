@@ -63,3 +63,5 @@ out/*
 logs/
 .gradle/
 build/
+
+texture*
