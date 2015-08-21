@@ -18,21 +18,21 @@ public class Launcher {
     private static String versionInfoJson;
 
     /*
-     * Just test.
+     * Demo.
      */
     public static void main(String[] args) {
-        launch("1.8", "_JAVA7", 2048);
+        launch("1.8", "_JAVA7", 2048, null);
     }
 
     /**
+     * Before you launch, you must run the libraries checker.
      *
      * @param version Launch minecraft version.
      * @param username Minecraft username.
      * @param maxMemory Java VM max use memory.
      */
-    public static List<String> launch(String version, String username, int maxMemory) {
+    public static void launch(String version, String username, int maxMemory, String jvmArgs) {
         String text = loadVersionInfoFile(version);
-        LibrariesManager.checkFormJson(text);
 
         String id = getVersionInfo(text, "id");
         String time = getVersionInfo(text, "time");
@@ -44,12 +44,15 @@ public class Launcher {
 
         String libraries = getLibraries(text);
 
-        tryToLaunch(version, libraries, minecraftArguments, mainClass, assets, username, maxMemory);
-        return null;
+        if (jvmArgs == null) {
+            jvmArgs = "";
+        }
+
+        tryToLaunch(version, libraries, minecraftArguments, mainClass, assets, username, maxMemory, jvmArgs);
     }
 
     private static void tryToLaunch(String version, String libraries, String minecraftArguments,
-                                    String mainClass, String assets, String username, int maxMemory) {
+                                    String mainClass, String assets, String username, int maxMemory, String jvmArgs) {
         String nativesPath = versionPath + version + "/" + version + "-" + "Natives";
         String chassPath = versionPath + version + "/" + version + ".jar";
         String arg = minecraftArguments.replace("${auth_player_name}", username)
@@ -62,8 +65,8 @@ public class Launcher {
                 .replace("${user_properties}", "{}")
                 .replace("${user_type}", "legacy");
 
-        String cmd = "java -Xmx" + maxMemory + "M" + " " + "-Djava.library.path=" + nativesPath + " "
-                + "-classpath" + " " + libraries + "\"" + chassPath + "\"" + " " + mainClass + " " + arg;
+        String cmd = "java -Xmx" + maxMemory + "M" + " " + "-XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:-UseAdaptiveSizePolicy" + " "
+                + jvmArgs + "-Djava.library.path=" + nativesPath + " " + "-classpath" + " " + libraries + "\"" + chassPath + "\"" + " " + mainClass + " " + arg;
         System.out.println(cmd);
         try {
             Runtime.getRuntime().exec(cmd);
