@@ -4,9 +4,12 @@ import org.apache.commons.lang3.SystemUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * Created by suhao on 2015-6-11-0011.
@@ -14,15 +17,44 @@ import java.util.List;
  * @author suhao
  */
 public class LibrariesManager {
-
+    private static List<String> missingLib = new ArrayList<>();
+    private static List<String> nativesLib = new ArrayList<>();
     /**
      *
      * @return Missing Libraries Files List.
      */
-    private static List<String> checkLibraries() {
-        List<String> missingLib = new ArrayList<>();
-        for (int i = 0; i < Launcher.libArray.length(); i++) {
-            JSONObject arrayObject = (JSONObject) Launcher.libArray.get(i);
+    protected static List<String> checkLibraries() {
+
+        if (Launcher.verInfoObject.has("inheritsFrom")) {
+            String parentText = Launcher.loadVersionInfoFile(Launcher.verInfoObject.getString("inheritsFrom"));
+            JSONObject parentVerInfoObj = new JSONObject(parentText);
+            JSONArray parentLibArray = (JSONArray) parentVerInfoObj.get("libraries");
+            check(parentLibArray);
+        }
+        check(Launcher.libArray);
+
+        System.err.println("Missing " + missingLib.size() + " Libraries");
+
+        for (String s : missingLib) {
+            System.err.println(s);
+        }
+
+        deleteFile(Launcher.nativesPath);
+
+        for (String aNativesList : nativesLib) {
+            try {
+                unZipFiles(new File(aNativesList), Launcher.nativesPath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return missingLib;
+    }
+
+    private static void check(JSONArray jsonArray) {
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject arrayObject = (JSONObject) jsonArray.get(i);
             String lib = arrayObject.getString("name");
             String a = lib.substring(0, lib.lastIndexOf(":")).replace(".", "/").replace(":", "/");
             String b = lib.substring(lib.lastIndexOf(":") + 1);
@@ -46,18 +78,72 @@ public class LibrariesManager {
                     File nFileLib = new File(nLibs);
                     if (!nFileLib.exists()) {
                         missingLib.add(lib);
+                    } else {
+                        nativesLib.add(nLibs);
                     }
                 } else {
                     missingLib.add(lib);
                 }
             }
         }
-        System.err.println("Missing " + missingLib.size() + " Libraries");
+    }
 
-        for (String s : missingLib) {
-            System.err.println(s);
+    private static void unZipFiles(File zipFile, String descDir)throws IOException{
+        File pathFile = new File(descDir);
+        if(!pathFile.exists()){
+            pathFile.mkdirs();
         }
+        ZipFile zip = new ZipFile(zipFile);
+        for(Enumeration entries = zip.entries(); entries.hasMoreElements();){
+            ZipEntry entry = (ZipEntry)entries.nextElement();
+            String zipEntryName = entry.getName();
+            InputStream in = zip.getInputStream(entry);
+            String outPath = (descDir+zipEntryName).replaceAll("\\*", "/");;
+            //判断路径是否存在,不存在则创建文件路径
+            File file = new File(outPath.substring(0, outPath.lastIndexOf('/')));
+            if(!file.exists()){
+                file.mkdirs();
+            }
+            //判断文件全路径是否为文件夹,如果是上面已经上传,不需要解压
+            if(new File(outPath).isDirectory()){
+                continue;
+            }
 
-        return missingLib;
+            System.out.println(outPath);
+
+            OutputStream out = null;
+            try {
+                out = new FileOutputStream(outPath);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            byte[] buf1 = new byte[1024];
+            int len;
+            while((len = in.read(buf1)) > 0){
+                if (out != null) {
+                    try {
+                        out.write(buf1, 0, len);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            in.close();
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+
+    public static void deleteFile(String path) {
+        File file = new File(path);
+        if (file.isDirectory()) {
+            File[] ff = file.listFiles();
+            for (File aFf : ff) {
+                deleteFile(aFf.getPath());
+            }
+        }
+        file.delete();
     }
 }
+

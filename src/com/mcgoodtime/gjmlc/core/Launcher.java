@@ -21,6 +21,7 @@ public class Launcher {
 
     protected static String versionPath = "./.minecraft/versions/";
     private static String versionInfoJson;
+    protected static String nativesPath;
 
     private String version;
     private String parentVer;
@@ -30,6 +31,7 @@ public class Launcher {
      */
     public static void main(String[] args) {
         Launcher launcher = new Launcher("1.7.10-Forge10.13.4.1448-1.7.10");
+        launcher.checkLibs();
         launcher.launch("BestOwl", 2048, null);
     }
 
@@ -37,6 +39,7 @@ public class Launcher {
         text = loadVersionInfoFile(version);
         verInfoObject = new JSONObject(text);
         libArray = (JSONArray) verInfoObject.get("libraries");
+        nativesPath =  versionPath + version + "/" + version + "-" + "Natives" + "/";
         this.version = version;
     }
 
@@ -91,7 +94,6 @@ public class Launcher {
 
     private void tryToLaunch(String libraries, String minecraftArguments,
                                     String mainClass, String assets, String username, int maxMemory, String jvmArgs, boolean isInherits) {
-        String nativesPath = versionPath + version + "/" + version + "-" + "Natives";
 
         String classPath;
         if (isInherits) {
@@ -184,5 +186,9 @@ public class Launcher {
             stringBuffer.append(libs);
         }
         return stringBuffer.toString();
+    }
+
+    public void checkLibs() {
+        LibrariesManager.checkLibraries();
     }
 }
