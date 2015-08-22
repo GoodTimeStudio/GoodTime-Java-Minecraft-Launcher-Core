@@ -17,28 +17,10 @@ public class LibrariesManager {
 
     /**
      *
-     * @param version Minecraft version.
      * @return Missing Libraries Files List.
      */
-    public static List<String> check(String version) {
-        return checkLibraries(Launcher.loadVersionInfoFile(version));
-    }
-
-    /**
-     *
-     * @param text, Loaded json info.
-     * @return, Missing Libraries Files List.
-     */
-    public static List<String> checkFormJson(String text) {
-        return checkLibraries(text);
-    }
-
-    /**
-     * @param text Minecraft version info file text.
-     * @return Missing Libraries Files List.
-     */
-    private static List<String> checkLibraries(String text) {
-        List<String> missingLib = new ArrayList<String>();
+    private static List<String> checkLibraries() {
+        List<String> missingLib = new ArrayList<>();
         for (int i = 0; i < Launcher.libArray.length(); i++) {
             JSONObject arrayObject = (JSONObject) Launcher.libArray.get(i);
             String lib = arrayObject.getString("name");
