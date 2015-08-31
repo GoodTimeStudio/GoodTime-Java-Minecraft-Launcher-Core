@@ -4,6 +4,8 @@ version = "1.0." + getBuildNumber()
 group= "com.mcgoodtime.gjmlc"
 archivesBaseName = "gjmlc"
 
+compileJava.options.encoding = 'UTF-8'
+
 dependencies {
     compile fileTree(dir:'libs',include:"*.jar")
 }

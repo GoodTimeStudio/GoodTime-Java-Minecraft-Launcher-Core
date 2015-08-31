@@ -1,9 +1,9 @@
 package com.mcgoodtime.gjmlc.core;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang3.SystemUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -26,9 +26,9 @@ public class LibrariesManager {
     protected static List<String> checkLibraries() {
 
         if (Launcher.verInfoObject.has("inheritsFrom")) {
-            String parentText = Launcher.loadVersionInfoFile(Launcher.verInfoObject.getString("inheritsFrom"));
-            JSONObject parentVerInfoObj = new JSONObject(parentText);
-            JSONArray parentLibArray = (JSONArray) parentVerInfoObj.get("libraries");
+            String parentText = Launcher.loadVersionInfoFile(Launcher.verInfoObject.get("inheritsFrom").getAsString());
+            JsonObject parentVerInfoObj = new JsonParser().parse(parentText).getAsJsonObject();
+            JsonArray parentLibArray = (JsonArray) parentVerInfoObj.get("libraries");
             check(parentLibArray);
         }
         check(Launcher.libArray);
@@ -52,10 +52,10 @@ public class LibrariesManager {
         return missingLib;
     }
 
-    private static void check(JSONArray jsonArray) {
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject arrayObject = (JSONObject) jsonArray.get(i);
-            String lib = arrayObject.getString("name");
+    private static void check(JsonArray jsonArray) {
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JsonObject arrayObject = (JsonObject) jsonArray.get(i);
+            String lib = arrayObject.get("name").getAsString();
             String a = lib.substring(0, lib.lastIndexOf(":")).replace(".", "/").replace(":", "/");
             String b = lib.substring(lib.lastIndexOf(":") + 1);
             String c = lib.substring(lib.indexOf(":") + 1).replace(":", "-");
@@ -63,16 +63,16 @@ public class LibrariesManager {
             File fileLib = new File(libs);
             if (!fileLib.exists()) {
                 if (arrayObject.has("natives")) {;
-                    JSONObject nativesObject = (JSONObject) arrayObject.get("natives");
+                    JsonObject nativesObject = (JsonObject) arrayObject.get("natives");
                     String natives = null;
                     if (SystemUtils.IS_OS_WINDOWS) {
-                        natives = nativesObject.getString("windows").replace("${arch}", SystemUtils.OS_ARCH);
+                        natives = nativesObject.get("windows").getAsString().replace("${arch}", SystemUtils.OS_ARCH);
                     }
                     if (SystemUtils.IS_OS_LINUX) {
-                        natives = nativesObject.getString("linux");
+                        natives = nativesObject.get("linux").getAsString();
                     }
                     if (SystemUtils.IS_OS_MAC_OSX) {
-                        natives = nativesObject.getString("osx");
+                        natives = nativesObject.get("osx").getAsString();
                     }
                     String nLibs = "./.minecraft/libraries/" + a + "/" + b + "/" + c + "-" + natives + ".jar";
                     File nFileLib = new File(nLibs);

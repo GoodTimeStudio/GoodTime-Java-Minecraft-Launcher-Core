@@ -1,11 +1,10 @@
 package com.mcgoodtime.gjmlc.core;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.*;
-import java.util.List;
+
 
 /**
  * Created by suhao on 2015-6-8-0008.
@@ -14,10 +13,12 @@ import java.util.List;
  */
 public class Launcher {
 
-    public static JSONObject verInfoObject;
-    public static JSONArray libArray;
+    public static JsonObject verInfoObject;
+    public static JsonArray libArray;
 
     private static String text;
+
+    private static JsonParser parser = new JsonParser();
 
     protected static String versionPath = "./.minecraft/versions/";
     private static String versionInfoJson;
@@ -37,8 +38,8 @@ public class Launcher {
 
     public Launcher(String version) {
         text = loadVersionInfoFile(version);
-        verInfoObject = new JSONObject(text);
-        libArray = (JSONArray) verInfoObject.get("libraries");
+        verInfoObject = parser.parse(text).getAsJsonObject();
+        libArray = (JsonArray) verInfoObject.get("libraries");
         nativesPath =  versionPath + version + "/" + version + "-" + "Natives" + "/";
         this.version = version;
     }
@@ -65,12 +66,12 @@ public class Launcher {
 
             parentVer = getVersionInfo("inheritsFrom");
             String parentText = loadVersionInfoFile(parentVer);
-            JSONObject parentVerInfoObj = new JSONObject(parentText);
-            JSONArray parentLibArray = (JSONArray) parentVerInfoObj.get("libraries");
+            JsonObject parentVerInfoObj = parser.parse(parentText).getAsJsonObject();
+            JsonArray parentLibArray = (JsonArray) parentVerInfoObj.get("libraries");
 
             StringBuffer stringBuffer = new StringBuffer();
-            for (int i = 0; i < parentLibArray.length(); i++) {
-                JSONObject arrayObject = (JSONObject) parentLibArray.get(i);
+            for (int i = 0; i < parentLibArray.size(); i++) {
+                JsonObject arrayObject = (JsonObject) parentLibArray.get(i);
                 String lib = arrayObject.get("name").toString();
                 String a = lib.substring(0, lib.lastIndexOf(":")).replace(".", "/").replace(":", "/");
                 String b = lib.substring(lib.lastIndexOf(":") + 1);
@@ -157,26 +158,14 @@ public class Launcher {
     * Get Version Info From Loaded Json
     */
     private String getVersionInfo(String key) {
-        String value = null;
-        try {
-            value = verInfoObject.getString(key);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return value;
+        return verInfoObject.get(key).getAsString();
     }
 
     /**
     * Get Version Info From Loaded Json
     */
     private int getVersionInfoAsInt(String text, String key) {
-        int value = 0;
-        try {
-            value = verInfoObject.getInt(key);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return value;
+        return verInfoObject.get(key).getAsInt();
     }
 
     /**
@@ -207,8 +196,8 @@ public class Launcher {
 
     protected String  getLibraries(String text) {
         StringBuffer stringBuffer = new StringBuffer();
-        for (int i = 0; i < libArray.length(); i++) {
-            JSONObject arrayObject = (JSONObject) libArray.get(i);
+        for (int i = 0; i < libArray.size(); i++) {
+            JsonObject arrayObject = (JsonObject) libArray.get(i);
             String lib = arrayObject.get("name").toString();
             String a = lib.substring(0, lib.lastIndexOf(":")).replace(".", "/").replace(":", "/");
             String b = lib.substring(lib.lastIndexOf(":") + 1);
