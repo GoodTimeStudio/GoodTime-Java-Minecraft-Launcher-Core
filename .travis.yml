@@ -3,7 +3,7 @@ jdk:
   - oraclejdk8
 before_install: 
   - chmod +x gradlew
-  - ./gradlew clean cleanCache
+  - ./gradlew clean
 script: ./gradlew build -S -i
 notifications:
   email: false
