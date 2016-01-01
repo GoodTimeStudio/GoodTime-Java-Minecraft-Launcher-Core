@@ -11,7 +11,7 @@ import java.io.*;
  *
  * @author suhao
  */
-public class Launcher {
+public class GJMLC {
 
     public static JsonObject verInfoObject;
     public static JsonArray libArray;
@@ -31,12 +31,12 @@ public class Launcher {
      * Demo.
      */
     public static void main(String[] args) {
-        Launcher launcher = new Launcher("1.7.10-Forge10.13.4.1448-1.7.10");
+        GJMLC launcher = new GJMLC("1.7.10-Forge10.13.4.1448-1.7.10");
         launcher.checkLibs();
-        launcher.launch("BestOwl", 2048, null);
+        launcher.launch("GJMLC", 1024, null);
     }
 
-    public Launcher(String version) {
+    public GJMLC(String version) {
         text = loadVersionInfoFile(version);
         verInfoObject = parser.parse(text).getAsJsonObject();
         libArray = (JsonArray) verInfoObject.get("libraries");
