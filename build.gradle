@@ -1,13 +1,23 @@
 apply plugin: 'java'
+apply plugin: 'idea'
 
-version = "1.0." + getBuildNumber()
+def versionMajor = "1"
+def versionMinor = "0"
+version = versionMajor + "." + versionMinor + getBuildNumber()
 group= "com.mcgoodtime.gjmlc"
 archivesBaseName = "gjmlc"
 
 compileJava.options.encoding = 'UTF-8'
 
+repositories {
+	maven {
+        url = "http://central.maven.org/maven2/"
+    }
+}
+
 dependencies {
-    compile fileTree(dir:'libs',include:"*.jar")
+	compile 'com.google.code.gson:gson:2.5'
+	compile 'org.apache.commons:commons-lang3:3.4'
 }
 
 jar {
@@ -26,6 +36,34 @@ sourceSets {
     }
 }
 
+idea.workspace.iws.withXml { provider ->
+    def xml = """
+        <configuration default="false" name="OneLauncher" type="Application" factoryName="Application">
+          <extension name="coverage" enabled="false" merge="false" runner="idea" />
+          <option name="MAIN_CLASS_NAME" value="com.mcgoodtime.onelauncher.core.OneLauncher" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+          <option name="WORKING_DIRECTORY" value="file://\$PROJECT_DIR\$/run" />
+          <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+          <option name="ALTERNATIVE_JRE_PATH" />
+          <option name="ENABLE_SWING_INSPECTOR" value="false" />
+          <option name="ENV_VARIABLES" />
+          <option name="PASS_PARENT_ENVS" value="true" />
+          <module name="OneLauncher" />
+          <envs />
+          <method />
+        </configuration>
+    """
+
+    def runConfig = new XmlParser().parseText(xml)
+
+    provider.asNode().component.each {
+        if (it.attribute("name").equals("RunManager")) {
+            it.append(runConfig)
+        }
+    }
+}
+
 def getBuildNumber() {
-	return "$System.env.BUILD_NUMBER" != "null" ? "$System.env.BUILD_NUMBER" : "0"
+    return "$System.env.BUILD_NUMBER" != "null" ? "." + Integer.parseInt("$System.env.BUILD_NUMBER") : ""
 }

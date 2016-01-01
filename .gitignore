@@ -57,11 +57,13 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# IDEA config file
+*.iml
+*.ipr
+*.iws
+
 .idea/
-out/*
-.minecraft/*
-logs/
+out/
 .gradle/
 build/
-
-texture*
+run/
