@@ -31,7 +31,7 @@ public class GJMLC {
      * Demo.
      */
     public static void main(String[] args) {
-        GJMLC launcher = new GJMLC("1.7.10-Forge10.13.4.1448-1.7.10");
+        GJMLC launcher = new GJMLC("1.8.9");
         launcher.checkLibs();
         launcher.launch("GJMLC", 1024, null);
     }

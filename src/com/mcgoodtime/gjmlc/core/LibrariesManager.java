@@ -25,13 +25,13 @@ public class LibrariesManager {
      */
     protected static List<String> checkLibraries() {
 
-        if (Launcher.verInfoObject.has("inheritsFrom")) {
-            String parentText = Launcher.loadVersionInfoFile(Launcher.verInfoObject.get("inheritsFrom").getAsString());
+        if (GJMLC.verInfoObject.has("inheritsFrom")) {
+            String parentText = GJMLC.loadVersionInfoFile(GJMLC.verInfoObject.get("inheritsFrom").getAsString());
             JsonObject parentVerInfoObj = new JsonParser().parse(parentText).getAsJsonObject();
             JsonArray parentLibArray = (JsonArray) parentVerInfoObj.get("libraries");
             check(parentLibArray);
         }
-        check(Launcher.libArray);
+        check(GJMLC.libArray);
 
         System.err.println("Missing " + missingLib.size() + " Libraries");
 
@@ -39,11 +39,11 @@ public class LibrariesManager {
             System.err.println(s);
         }
 
-        deleteFile(Launcher.nativesPath);
+        deleteFile(GJMLC.nativesPath);
 
         for (String aNativesList : nativesLib) {
             try {
-                unZipFiles(new File(aNativesList), Launcher.nativesPath);
+                unZipFiles(new File(aNativesList), GJMLC.nativesPath);
             } catch (IOException e) {
                 e.printStackTrace();
             }
