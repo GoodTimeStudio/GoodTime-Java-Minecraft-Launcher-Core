@@ -10,6 +10,7 @@ plugins {
 
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'maven-publish'
 
 def versionMajor = "1"
 def versionMinor = "0"
@@ -47,10 +48,22 @@ def getBuildNumber() {
     return "$System.env.BUILD_NUMBER" != "null" ? "." + Integer.parseInt("$System.env.BUILD_NUMBER") : ""
 }
 
+publishing {
+	publications {
+		MyPublication(MavenPublication) {
+			from components.java
+			groupId project.group
+            artifactId project.archivesBaseName
+            version project.version
+		}
+	}
+}
+
 bintray {
     user = 'bestowl'
     key = 'a309ef638da62405afdebe06c06d27bf16bf8120'
 	configurations = ['archives']
+	publications = ['MyPublication']
 	filesSpec {
 		from 'build/libs'
 		into '/'
