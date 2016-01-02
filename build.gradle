@@ -1,3 +1,13 @@
+buildscript {
+  repositories {
+        jcenter()
+   }
+}
+
+plugins {
+    id "com.jfrog.bintray" version "1.4"
+}
+
 apply plugin: 'java'
 apply plugin: 'idea'
 
@@ -10,9 +20,7 @@ archivesBaseName = "gjmlc"
 compileJava.options.encoding = 'UTF-8'
 
 repositories {
-	maven {
-        url = "http://central.maven.org/maven2/"
-    }
+	mavenCentral()
 }
 
 dependencies {
@@ -37,4 +45,24 @@ sourceSets {
 
 def getBuildNumber() {
     return "$System.env.BUILD_NUMBER" != "null" ? "." + Integer.parseInt("$System.env.BUILD_NUMBER") : ""
+}
+
+bintray {
+    user = 'bestowl'
+    key = 'a309ef638da62405afdebe06c06d27bf16bf8120'
+	configurations = ['archives']
+	filesSpec {
+		from 'build/libs'
+		into '/'
+    }
+	pkg {
+        repo = 'maven'
+        name = project.archivesBaseName
+        userOrg = 'goodtimestudio'
+        licenses = ['MIT']
+        vcsUrl = 'https://github.com/GoodTimeStudio/GoodTime-Java-Minecraft-Launcher-Core.git'
+		version {
+                name = project.version
+        }
+    }
 }
