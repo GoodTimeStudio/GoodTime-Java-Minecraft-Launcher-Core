@@ -60,22 +60,24 @@ publishing {
 }
 
 bintray {
-    user = 'bestowl'
-    key = 'a309ef638da62405afdebe06c06d27bf16bf8120'
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_API_KEY')
 	configurations = ['archives']
 	publications = ['MyPublication']
 	filesSpec {
 		from 'build/libs'
 		into '/'
     }
+	publish = true
 	pkg {
         repo = 'maven'
         name = project.archivesBaseName
         userOrg = 'goodtimestudio'
         licenses = ['MIT']
         vcsUrl = 'https://github.com/GoodTimeStudio/GoodTime-Java-Minecraft-Launcher-Core.git'
+		publicDownloadNumbers = true
 		version {
-                name = project.version
+            name = project.version
         }
     }
 }
